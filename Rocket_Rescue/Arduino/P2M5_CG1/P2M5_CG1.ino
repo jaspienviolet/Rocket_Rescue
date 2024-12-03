@@ -1,10 +1,10 @@
 /*
 
-  SparkFun P2M4 Protype
+  Final Code for P2M7 -- File Name not renamed from prior file
   Xing Hao Huang - huang.xingh@northeastern.edu
-  Testing a bunch of stuff
-  Taken from Arduino IDE Sample - SparkFun Book SIK4.1 4A & 5A
-  Descriptions: Press button, turns on and off LED, score on LCD increases, motor changes directions
+  Component Grid 1
+  Descriptions: Read changes in limit switches / buttons, sends code through Serial
+  Change for b1 through b9, change all digitalRead == HIGH to change to detect lifting up pieces instead of pressing down siwtches
 
 */
 
@@ -57,13 +57,11 @@ void loop()
 
   while (info < 3)
   {
-    if (row1 == 0)
+    if (row1 == 0) // detects changes to first row, only activates if no changes have occurred
     {
-
       b1 = digitalRead(button1);
       b2 = digitalRead(button2);
       b3 = digitalRead(button3);
-
       if (b1 == LOW) 
       {
         row1 = 1;
@@ -80,7 +78,7 @@ void loop()
         s1 = 3;
       }
     }
-    if (row2 == 0)
+    if (row2 == 0) // detects changes to second row, only activates if no changes have occurred
     {
       b4 = digitalRead(button4);
       b5 = digitalRead(button5);
@@ -102,7 +100,7 @@ void loop()
         s2 = 6;
       }
     }
-    if (row3 == 0)
+    if (row3 == 0) // detects changes to third row, only activates if no changes have occurred
     {
       b7 = digitalRead(button7);
       b8 = digitalRead(button8);
@@ -127,7 +125,7 @@ void loop()
 
     if (s1 != 0)
     {
-      Serial.print('s'); // Component Grid 1 Sound
+      Serial.print('s'); // Component Grid 1 Sound for first row
       Serial.print(',');
       Serial.print(s1);
       Serial.print('\n');
@@ -138,7 +136,7 @@ void loop()
 
     if (s2 != 0)
     {
-      Serial.print('s'); // Component Grid 1 Sound
+      Serial.print('s'); // Component Grid 1 Sound for second row
       Serial.print(",");
       Serial.print(s2);
       Serial.print('\n');
@@ -149,7 +147,7 @@ void loop()
 
     if (s3 != 0)
     {
-      Serial.print('s'); // Component Grid 1 Sound
+      Serial.print('s'); // Component Grid 1 Sound for third row
       Serial.print(',');
       Serial.print(s3);
       Serial.print('\n');
@@ -160,7 +158,7 @@ void loop()
   }
 
     Serial.print("c"); // Component Grid 1 Check
-    Serial.print(",");
+    Serial.print(","); // sends selected component choices through Serial
     Serial.print(row1);
     Serial.print(',');
     Serial.print(row2);
@@ -170,7 +168,7 @@ void loop()
 
     delay(500);
   
-  while (info == 3)
+  while (info == 3) 
   {
     char rCode = Serial.read();
 
@@ -178,19 +176,20 @@ void loop()
     bR = digitalRead(buttonReset);
    
 
-    if (bL == LOW)
+    if (bL == LOW) // if launch button is pressed, tell Serial
     {
       Serial.print('L');
       Serial.print('\n');
       delay(500);
     }
-    if (bR == LOW)
+    if (bR == LOW) // if reset button is pressed, tell Serial
     {
       Serial.print('r');
       Serial.print('\n');
       delay(500);
     }
 
+    // checks if components are in correct position to reset
     b1 = digitalRead(button1);
     b2 = digitalRead(button2);
     b3 = digitalRead(button3);
@@ -201,6 +200,7 @@ void loop()
     b8 = digitalRead(button8);
     b9 = digitalRead(button9);
 
+    // comment out if buttons are meant to be in HIGH for reset
     b1 = !b1;
     b2 = !b2;
     b3 = !b3;
@@ -209,19 +209,20 @@ void loop()
     b6 = !b6;
     b7 = !b7;
     b8 = !b8;
-    b9 = !b9;       
+    b9 = !b9; 
+    // comment out if buttons are meant to be in HIGH for reset
 
     bS = b1 + b2 + b3 + b4 + b5 + b6 + b7 + b8 + b9;
 
     if (Serial.available())
     {
-      if ((rCode == 'r') & (bS == 0))
+      if ((rCode == 'r') & (bS == 0)) // if components are in right position, allow for reset
       {
         Serial.print('g'); // Component Grid 1 Good
         Serial.print('\n');
         break;
       }
-      if ((rCode == 'r') & (bS != 0))
+      if ((rCode == 'r') & (bS != 0)) // if components are in right position, do not allow for reset
       {
         Serial.print('b'); // Component Grid 1 Bad
         Serial.print('\n');
@@ -229,13 +230,4 @@ void loop()
       }
     }
   }
-
 }
-
-/********************************************************************************/
-
-
-
-
-
-
