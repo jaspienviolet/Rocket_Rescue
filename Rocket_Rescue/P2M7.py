@@ -14,17 +14,18 @@ import time as t
 # d = conveyor belt finished moving
 # e = end and reset conveyor belt
 
-# Initialize pygame for sound
+# Initialize pygame for sound and images
 pygame.mixer.init()
 pygame.init()
 
+# Setting for pygame application
 black = (0, 0, 0)
 w = 1920
 h = 1080
 screen = pygame.display.set_mode((w, h))
 screen.fill((black))
 
-# load images, scale to 1920 x 1080 scale
+# load images
 intro = pygame.image.load("images/intro.PNG")
 rules1 = pygame.image.load("images/rules1.PNG")
 rules2 = pygame.image.load("images/rules2.PNG")
@@ -55,6 +56,7 @@ form = pygame.image.load("images/form.PNG")
 thank = pygame.image.load("images/thank.PNG")
 end = pygame.image.load("images/end.PNG")
 
+# creates lists of different images and associated images
 rules = [intro, rules1, rules2, rules3, rules4, rules5, rules6, compGrid]
 rules_Sound = ["intro.mp3", "rules1.mp3", "rules2.mp3", "rules3.mp3", "rules4.mp3", "rules5.mp3", "rules6.mp3", "compGrid.mp3"]
 reaction = [s1,s2,s3,s4,s5,s6,s7,s8,s9]
@@ -64,13 +66,12 @@ reflection_Sound =["fact1.mp3", "fact2.mp3", "fact3.mp3", "fact4.mp3", "fact5.mp
 ending = [thank, end, form]
 ending_Sound = ["thank.mp3", "end.mp3", "form.mp3"]
 
-# game functions
+# display functions
 def play_sound(file_path):
     """Play sound using pygame"""
     pygame.mixer.music.load(file_path)
     pygame.mixer.music.play()
-
-# storyline functions
+    
 def show_screen(image, sound):
     """Display screen and play associated sound file"""
     global screen
@@ -81,6 +82,7 @@ def show_screen(image, sound):
 
 
 # Serial port setup
+# Serial ending in odd are for Component Grid, ending in even are for Conveyor Belt
 cg1 = s.Serial(port='COM3', baudrate=9600)
 cb1 = s.Serial(port='COM4', baudrate=9600)
 cg2 = s.Serial(port='COM5', baudrate=9600)
@@ -88,37 +90,34 @@ cb2 = s.Serial(port='COM6', baudrate=9600)
 
 print("Program confirmed")
 
-while True:
-    L = 0
+while True: # variables to reset after reset
+    L1 = 0
+    L2 = 0
     g1 = 0
     g2 = 0
     score1 = ''
     score2 = ''
     page = 0
-    p1 = 0
-    p2 = 0
     reset = 0
 
     while True:
 
-        if page < 8:
+        if page < 8: # displays images of rules alongside correlated sound
             show_screen(rules[page], rules_Sound[page])
-            t.sleep(1)
+            t.sleep(1) # how long each image is allowed to be displayed for in seconds -- use list of time with index page equal to sound file lengths
             page += 1
 
-        if cg1.in_waiting > 0:
-            p1 = 1
-
+        if cg1.in_waiting > 0: # reads Serial input from Component Grid 1
             rg1 = cg1.readline().decode().strip('\n')
-            print(rg1)
+            print(rg1) 
 
-            if 's' in rg1:
+            if 's' in rg1: # component picked, show screen associated with component
                 rG1 = rg1.split(',')
                 print(rG1)
                 sG1 = rG1[1]
                 show_screen(reaction[int(sG1) - 1], reaction_Sound[int(sG1) - 1])
             
-            if 'c' in rg1:
+            if 'c' in rg1: # all components picked, converts value to weighted score
                 rG1 = rg1.split(',')
                 print(rG1)
                 cG1 = rG1[1:]
@@ -149,30 +148,28 @@ while True:
                     case '9':     # methane
                         cG1a[2] = 3
 
-                score1 = str(int(cG1a[0]) + int(cG1a[1]) + int(cG1a[2]))
+                score1 = str(int(cG1a[0]) + int(cG1a[1]) + int(cG1a[2])) # weighted score to be sent to Conveyor Belt
                 print(score1)
 
-            # if 'L' in rg1:
-            #     print("launch")
-            #     L = 1
+            if 'L' in rg1: # allows for launch
+                print("launch")
+                L1 = 1
 
-            if 'r' in rg1:
+            if 'r' in rg1: # if reset is attempted, tests if all pieces are in place
                 print("Attempting Reset")
                 res = 'r'
                 cg1.write(res.encode('utf-8'))
                 cg2.write(res.encode('utf-8'))
 
-            if 'g' in rg1:
+            if 'g' in rg1: # if all in place, allow for reset
                 g1 = 1
                 print(rg1)
 
-            if 'b' in rg1 :
+            if 'b' in rg1 : # if not all in place, do not allow for reset
                 print('cg1',rg1)
 
 
-        if cg2.in_waiting > 0:
-            p2 = 1
-
+        if cg2.in_waiting > 0: # reads Serial input from Component Grid 2
             rg2 = cg2.readline().decode().strip('\n')
             print(rg2)
 
@@ -218,7 +215,7 @@ while True:
 
             if 'L' in rg2:
                 print("launch")
-                L = 1
+                L2 = 1
 
             if 'r' in rg2:
                 print("Attempting Reset")
@@ -233,28 +230,29 @@ while True:
             if 'b' in rg2:
                 print('cg2',rg2)
 
-        if cb1.in_waiting > 0:
+        if cb1.in_waiting > 0: # reads if first conveyor belt is finished with motion
             rB1 = cb1.readline().decode().strip('\n')
             print(rB1)
 
             if 'd' in rB1:
                 score1 = 0
 
-        if cb2.in_waiting > 0:
+        if cb2.in_waiting > 0: # reads if second conveyor belt is finished with motion
             rB2 = cb2.readline().decode().strip('\n')
             print(rB2)
 
             if 'd' in rB2:
                 score2 = 0
 
-        if (g2 == 1) and (reset == 0):
+        if ((g2 or g1) == 1) and (reset == 0): # if both component grids are back to original state and prompts for reset, proceed with reset
             reset = 1
-            end = 'e'
+            end = 'e' # prompts conveyor belts to reset
             print(end)
             cb1.write(end.encode('utf-8'))
             cb2.write(end.encode('utf-8'))
             g1 = 0
             g2 = 0
+            # converters weighted scores back to component picked
             match cG1[0]:
                 case 1:
                     cG1[0] = 3
@@ -298,6 +296,7 @@ while True:
                 case 3:
                     cG2[2] = 9
             print(cG1)
+            # show screens based on choices picked and reason for score
             show_screen(reflection[int(cG1[0]) - 1], reflection_Sound[int(cG1[0]) - 1])
             t.sleep(5)
             show_screen(reflection[int(cG1[1]) - 1], reflection_Sound[int(cG1[1]) - 1])
@@ -311,6 +310,7 @@ while True:
             t.sleep(5)
             show_screen(reflection[int(cG2[2]) - 1], reflection_Sound[int(cG2[2]) - 1])
             t.sleep(5)
+            # shows final screens
             show_screen(ending[0], ending_Sound[0])
             t.sleep(6)
             show_screen(ending[1], ending_Sound[1])
@@ -319,10 +319,11 @@ while True:
             t.sleep(10)
             break
                 
-        if L == 1 and (score1 > "" and score2 > ""):
+        if ((L1 or L2) == 1) and (score1 > "" or score2 > ""): # checks for if launch button was pressured
             cb1.write(score1.encode('utf-8'))
             cb2.write(score2.encode('utf-8'))
-            L = 0
+            L1 = 0
+            L2 = 0
 
 
 
