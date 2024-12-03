@@ -1,10 +1,10 @@
 /*
 
-  SparkFun P2M4 Protype
+  Final Code for P2M7 -- File Name not renamed from prior file
   Xing Hao Huang - huang.xingh@northeastern.edu
-  Testing a bunch of stuff
-  Taken from Arduino IDE Sample - SparkFun Book SIK4.1 4A & 5A
-  Descriptions: Press button, turns on and off LED, score on LCD increases, motor changes directions
+  Conveyor Belt 2
+  Taken from Arduino IDE Sample - SparkFun Book SIK4.1 and SIK3.3 motors
+  Descriptions: Read Serial Input and move conveyor motors and update LCD accordingly
 
 */
 
@@ -61,7 +61,7 @@ void loop()
     if (Serial.available())
     {
       char rCode = Serial.read();
-      if (rCode == 'e')
+      if (rCode == 'e') // resets arduino code
       {
         lcd.setCursor(0,1);
         lcd.print("reset");
@@ -71,15 +71,15 @@ void loop()
       }
       else
       {
-        dataIn = rCode - '0';
+        dataIn = rCode - '0'; // converts str(num) from Serial Input into int score
       }
 
-      if (dataIn > 0)
+      if (dataIn > 0) // use functions according to dataIn
       {
         spinMotor(dataIn);
         delay(3000);
         spinMotor(-dataIn);
-        Serial.print('d');
+        Serial.print('d'); // tells python conveyor belt is complete
         Serial.print('\n');
       }
 
@@ -89,11 +89,10 @@ void loop()
 
 /********************************************************************************/
 
-void spinMotor(int time)            // function for driving the right motor
+void spinMotor(int time)            // function for driving motor
 {
   int motorSpeed = 254;
   int i;
-  int speed = motorSpeed;
   int score = 0;
   
   if (time > 0)                     // if the motor should drive forward (positive speed)
@@ -123,7 +122,7 @@ void spinMotor(int time)            // function for driving the right motor
     for (i = 0; i < time; i++)
     {
       lcd.setCursor(0,1);
-      analogWrite(PWMA, motorSpeed);     // now that the motor direction is set, drive it at the entered speed
+      analogWrite(PWMA, motorSpeed);     // now that the motor direction is set, drive motor for half the inputted int, up score on lcd updating even half second
       analogWrite(PWMB, motorSpeed);
       lcd.print(score);
       score += 1;
@@ -136,7 +135,7 @@ void spinMotor(int time)            // function for driving the right motor
     delay(500);
   }
 
-  if (time < 0)
+  if (time < 0)                        // moves motor in reverse direction but no LCD updating
   {
     for (i = 0; i < abs(time); i++)
     {
@@ -151,4 +150,3 @@ void spinMotor(int time)            // function for driving the right motor
   analogWrite(PWMA, 0);
   analogWrite(PWMB, 0);
 }
-
