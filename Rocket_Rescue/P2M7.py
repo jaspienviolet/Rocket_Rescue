@@ -1,5 +1,3 @@
-# credit to @hovanngo for his help with pygame 
-
 import serial as s
 from PIL import Image, ImageTk
 import pygame
